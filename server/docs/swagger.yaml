@@ -1,0 +1,242 @@
+openapi: 3.0.0
+info:
+  title: ByteStash API
+  version: "1.0.0"
+  description: API documentation for ByteStash snippet storage service.
+servers:
+  - url: /
+    description: Local server
+components:
+  securitySchemes:
+    JwtAuth:
+      type: apiKey
+      in: header
+      name: bytestashauth
+      description: JWT token obtained from /api/auth/login
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for CLI access
+  schemas:
+    Fragment:
+      type: object
+      properties:
+        id:
+          type: integer
+        file_name:
+          type: string
+        code:
+          type: string
+        language:
+          type: string
+        position:
+          type: integer
+    Snippet:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+        fragments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fragment'
+        updated_at:
+          type: string
+        share_count:
+          type: integer
+    Share:
+      type: object
+      properties:
+        id:
+          type: string
+        snippetId:
+          type: integer
+        requiresAuth:
+          type: boolean
+        expiresIn:
+          type: integer
+paths:
+  /api/auth/login:
+    post:
+      summary: Authenticate a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Logged in
+        '401':
+          description: Invalid credentials
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully registered
+        '400':
+          description: Validation error
+  /api/auth/config:
+    get:
+      summary: Get authentication configuration
+      responses:
+        '200':
+          description: Auth config object
+  /api/snippets:
+    get:
+      summary: Get all snippets for current user
+      security:
+        - JwtAuth: []
+      responses:
+        '200':
+          description: List of snippets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Snippet'
+    post:
+      summary: Create a new snippet
+      security:
+        - JwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Snippet'
+      responses:
+        '201':
+          description: Snippet created
+  /api/snippets/{id}:
+    get:
+      summary: Get snippet by id
+      security:
+        - JwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Snippet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Snippet'
+    put:
+      summary: Update snippet by id
+      security:
+        - JwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Snippet'
+      responses:
+        '200':
+          description: Updated snippet
+    delete:
+      summary: Delete snippet
+      security:
+        - JwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Snippet deleted
+  /api/public/snippets:
+    get:
+      summary: Get all public snippets
+      responses:
+        '200':
+          description: List of public snippets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Snippet'
+  /api/public/snippets/{id}:
+    get:
+      summary: Get a public snippet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A public snippet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Snippet'
+  /api/share:
+    post:
+      summary: Create share link
+      security:
+        - JwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Share'
+      responses:
+        '201':
+          description: Share link created
+  /api/share/{id}:
+    get:
+      summary: Retrieve a share
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Snippet with share data
