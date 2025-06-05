@@ -61,8 +61,7 @@ services:
 
 ## API Documentation
 Once the server is running you can explore the API via Swagger UI. Open
-`/api-docs` in your browser to view the automatically generated
-documentation for all endpoints.
+`/api-docs` in your browser to view the documentation for all endpoints.
 
 ## Contributing
 Contributions are welcome! Please submit a pull request or open an issue for any improvements or bug fixes.
